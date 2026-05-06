@@ -10,7 +10,7 @@ For any attack, the initial step is always **reconnaissance (recon)**. Nmap is o
 
 During the setup of this ecosystem, the network adapters had to be changed to **Bridged**, which caused the IP address to change. Due to this, a new forward-server was mapped to the new IP of the server machine.
 
-![Initial Timestamp / Forward Server Config](images/nmap/1_ts.png)
+![Initial Timestamp / Forward Server Config](images/nmap/1_initial_ts.png)
 
 ---
 
