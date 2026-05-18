@@ -1,9 +1,8 @@
-# ARP Spoofing Attack and Detection Lab
+# ARP Spoofing Attack (Man-in-the-Middle)
 
 ## Overview
 
-This lab demonstrates how an ARP spoofing (Man-in-the-Middle) attack is performed on a local network, how traffic can be intercepted using dsniff, and how to detect such attacks using arpwatch integrated with Splunk for log monitoring.
-
+Communication between systems logically uses IP addresses, but actual communication within a local network occurs using MAC addresses through the Address Resolution Protocol (ARP). ARP maps a known IP address to its corresponding MAC address. In an ARP spoofing attack, the attacker continuously sends forged ARP reply packets with a fake MAC address, causing the victim to associate the attacker’s MAC address with the gateway or another legitimate host. As a result, traffic is redirected through the attacker system, enabling Man-in-the-Middle (MITM) attacks. These activities are not directly visible in Splunk unless a monitoring tool is used. In this setup, arpwatch is installed on the victim machine to monitor ARP table changes and generate alerts whenever MAC address changes are detected. The generated logs are then forwarded to Splunk for analysis and monitoring.
 
 ## 1. Environment Setup
 
@@ -13,8 +12,6 @@ Install `dsniff` on the attacker machine (Kali Linux). The `dsniff` package incl
 sudo apt update
 sudo apt install dsniff -y
 ```
-
-
 
 ![dsniff installation](images/arp_spoofing/1.png)
 
@@ -47,7 +44,7 @@ From the output:
 
 ## 3. Enabling IP Forwarding
 
-IP forwarding must be enabled on the attacker machine so that intercepted packets are forwarded to their intended destination. Without this, the victim and gateway would lose connectivity, making the attack obvious.
+IP forwarding must be enabled on the attacker machine so that intercepted packets are forwarded to their intended destination. Without this, the victim and gateway would lose connectivity, making the attack obvious. To achieve this we must make changes to a virtual file which lets the attacker to forward packets, when this file has the value '0' then the system will be instructed to drop any packets it recieves. This value will be reset everytime the system is rebooted.
 
 ```bash
 echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
@@ -55,8 +52,6 @@ cat /proc/sys/net/ipv4/ip_forward
 ```
 
 The output `1` confirms that IP forwarding is now active.
-
-
 
 ![IP forwarding enabled](images/arp_spoofing/4.png)
 
@@ -108,14 +103,12 @@ In the output below, both `10.155.14.121` (attacker) and `10.155.14.37` (gateway
 
 ## 6. SIEM Detection with Splunk - ARP Audit Logs
 
-Splunk is used on the victim/monitored machine to ingest Linux audit logs. Searching for `arp` in the index shows audit events where the `arp` binary was executed, confirming that arpspoof activity triggered system-level calls.
+Splunk is used on the to ingest Linux audit logs. Searching for `arp` in the index shows audit events where the `arp` binary was executed, this shows that even though the MAC address of the gateway has been altered there are no logs which leads to a stealth arp spoofing.
 
 **Splunk Search:**
 ```
 index=* arp
 ```
-
-The audit logs show `EXECVE`, `SYSCALL`, and `PATH` event types referencing `/usr/sbin/arp`, logged from `/var/log/audit/audit.log`.
 
 
 
@@ -125,9 +118,9 @@ The audit logs show `EXECVE`, `SYSCALL`, and `PATH` event types referencing `/us
 
 ## 7. Installing and Configuring Arpwatch
 
-`arpwatch` is a tool that monitors ARP traffic on a network and alerts when MAC-to-IP mappings change, which is a direct indicator of ARP spoofing.
+To prevent the silent attack we can use `arpwatch` a tool that monitors ARP traffic on a network and alerts when MAC-to-IP mappings change, which is a direct indicator of ARP spoofing.
 
-**Install arpwatch on the victim/monitor machine (Ubuntu):**
+**Install arpwatch on the victim machine (Ubuntu):**
 
 ```bash
 sudo apt install arpwatch -y
@@ -136,6 +129,21 @@ sudo apt install arpwatch -y
 
 
 ![Arpwatch installation](images/arp_spoofing/9.png)
+
+
+
+
+## 8. Arpwatch Running and Logging
+
+After starting, arpwatch logs activity to the system syslog. The syslog entries confirm that arpwatch entered promiscuous mode on `enp0s3` and began listening.
+
+```bash
+sudo tail -f /var/log/syslog
+```
+
+![Syslog arpwatch](images/arp_spoofing/10.png)
+
+From this, it can be observed that an error in arpwatch is preventing it from performing its intended function of generating and sending alerts to the monitoring system (Splunk). Upon analysis, it was identified that the database file used by arpwatch to store ARP-related information was missing. By following the steps below, the issue can be resolved, allowing arpwatch to properly generate and forward alerts to Splunk.
 
 **Create the required data file and set permissions:**
 
@@ -154,23 +162,8 @@ sudo arpwatch -i enp0s3 -d
 
 When run for the first time, arpwatch sends a "new station" notification for each discovered host. The output below shows the gateway `10.155.14.37` being registered.
 
-
-
 ![Arpwatch first run](images/arp_spoofing/11.png)
 
-
-
-## 8. Arpwatch Running and Logging
-
-After starting, arpwatch logs activity to the system syslog. The syslog entries confirm that arpwatch entered promiscuous mode on `enp0s3` and began listening.
-
-```bash
-sudo tail -f /var/log/syslog
-```
-
-
-
-![Syslog arpwatch](images/arp_spoofing/10.png)
 
 
 
@@ -182,12 +175,9 @@ To forward arpwatch output to syslog (and subsequently to Splunk), redirect its 
 sudo arpwatch -i enp0s3 -d 2>&1 | logger
 ```
 
-
-
 ![Arpwatch logger](images/arp_spoofing/12.png)
 
 This ensures all arpwatch alerts (new station, flip flop, changed ethernet address) are written to syslog and picked up by Splunk.
-
 
 
 ## 10. Splunk - Arpwatch Syslog Events
@@ -199,11 +189,9 @@ After the logger pipe is set up, Splunk begins receiving arpwatch events from `/
 source="/var/log/syslog" arpwatch
 ```
 
-
-
 ![Splunk arpwatch syslog](images/arp_spoofing/13.png)
 
-
+This confirms successful forwarding of ARP logs using arpwatch via `/var/log/syslog`.
 
 ## 11. Splunk - Flip Flop Alerts
 
@@ -221,28 +209,3 @@ source="/var/log/syslog" "flip flop"
 ![Splunk flip flop alerts](images/arp_spoofing/14.png)
 
 The high frequency of flip flop events (multiple per second) is a reliable indicator of an ongoing ARP poisoning attack.
-
-
-
-## Summary
-
-| Step | Action | Tool |
-|------|--------|------|
-| Install attack tools | dsniff / arpspoof | Kali Linux |
-| Identify network | Interface, IP, gateway | ip a, ip route |
-| Enable forwarding | Allow packet relay | /proc/sys/net/ipv4/ip_forward |
-| Execute attack | Poison victim and gateway ARP caches | arpspoof |
-| Detect via ARP table | Duplicate MAC for two IPs | ip neigh |
-| Detect via SIEM | ARP binary execution in audit logs | Splunk + auditd |
-| Monitor with arpwatch | MAC-IP change detection | arpwatch |
-| Forward logs | Pipe arpwatch to syslog | logger |
-| Alert in SIEM | Flip flop events in real time | Splunk |
-
----
-
-## Notes
-
-- All testing was performed in an isolated lab environment.
-- The attacker machine runs Kali Linux; the victim/monitor machine runs Ubuntu.
-- Splunk Universal Forwarder is configured on the Ubuntu machine to ship `/var/log/syslog` and `/var/log/audit/audit.log` to the Splunk indexer.
-- Replace interface names (`eth0`, `enp0s3`) and IP addresses with values matching your own lab environment.
