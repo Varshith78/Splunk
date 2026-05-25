@@ -117,8 +117,3 @@ These events confirm the cron daemon authenticated and ran the planted job. The 
 - Cron job persistence is a low-noise, high-impact technique that survives system reboots and user logouts.
 - On Linux systems with `auditd` enabled, every `crontab` invocation generates EXECVE and SYSCALL audit events that can be forwarded to a SIEM like Splunk for analysis.
 - When the cron daemon executes a job, it opens a PAM session which generates auth log events, providing a second independent detection opportunity.
-- Defenders should alert on:
-  - Unexpected `crontab -e` usage by non-root or non-service accounts
-  - New or modified files under `/var/spool/cron/crontabs/`
-  - Unusual PAM session opens sourced from `cron` for standard user accounts
-  - EXECVE events where `a0="crontab"` and the invoking user is not expected to schedule jobs
