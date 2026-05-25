@@ -1,4 +1,4 @@
-# Cron Job Persistence Attack - Lab Walkthrough
+# Cron Job Persistence Attack 
 
 ## What is a Cron Job Persistence Attack?
 
