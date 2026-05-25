@@ -1,12 +1,8 @@
 # Cron Job Persistence Attack 
 
-## What is a Cron Job Persistence Attack?
-
 A Cron Job Persistence Attack is a technique used by attackers to maintain long-term access to a compromised Linux or Unix-based system. After gaining initial access, an attacker plants a malicious command inside the system's cron scheduler, which automatically executes commands at defined time intervals. Because cron jobs run silently in the background and are often overlooked during routine system checks, this method allows an attacker to re-establish access, exfiltrate data, or execute payloads repeatedly, even after the initial intrusion vector has been discovered and closed.
 
 This technique falls under the MITRE ATT&CK framework as **T1053.003 - Scheduled Task/Job: Cron** and is classified as a persistence mechanism.
-
-
 
 ## Step 1: SSH into the Target Machine
 
