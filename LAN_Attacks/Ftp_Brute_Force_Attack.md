@@ -20,7 +20,7 @@ In this case:
 hydra -l varshith -P /usr/share/wordlists/rockyou.txt 10.155.14.161 ftp
 ```
 
-![Hydra brute force attack](images/ftp/1_hydra.png)
+![Hydra brute force attack](../images/ftp/1_hydra.png)
 
 From the output, it can be observed that the password has been successfully compromised for the FTP server. Hydra found the valid credentials:
 
@@ -33,7 +33,7 @@ From the output, it can be observed that the password has been successfully comp
 
 Before connecting to the server, it is important to observe the logs from the defender's perspective.
 
-![Splunk logs showing failed login attempts](images/ftp/2_successful_connect.png)
+![Splunk logs showing failed login attempts](../images/ftp/2_successful_connect.png)
 
 The logs show a large number of failed connection attempts from the same IP address (`::ffff:10.155.14.121`). This is because Hydra was cycling through passwords until it found the correct one.
 
@@ -51,7 +51,7 @@ Since the attacker now has the valid credentials, they can connect to the FTP se
 
 Using the compromised credentials, the attacker connects to the FTP server and lists the directory contents.
 
-![FTP login and directory listing](images/ftp/3_ftp.png)
+![FTP login and directory listing](../images/ftp/3_ftp.png)
 
 The attacker successfully authenticates and gains access to the user's home directory, which contains folders such as Desktop, Documents, Downloads, Music, Pictures, and more.
 
@@ -61,7 +61,7 @@ The attacker successfully authenticates and gains access to the user's home dire
 
 The attacker identifies a file of interest (`test.txt`) and downloads it using the `get` command.
 
-![FTP get command to download file](images/ftp/4_get_file.png)
+![FTP get command to download file](../images/ftp/4_get_file.png)
 
 The file is transferred successfully from the target machine to the attacker's system. This demonstrates how an attacker can exfiltrate sensitive data once FTP credentials are compromised.
 
@@ -71,7 +71,7 @@ The file is transferred successfully from the target machine to the attacker's s
 
 The download activity is captured in the FTP server logs located at `/var/log/vsftpd.log`.
 
-![Splunk logs showing successful login and file download](images/ftp/5_download_logs.png)
+![Splunk logs showing successful login and file download](../images/ftp/5_download_logs.png)
 
 The logs clearly show the full attack chain:
 
