@@ -22,7 +22,7 @@ crontab -e
 
 The system confirms: `crontab: installing new crontab`
 
-![SSH Login and Crontab Editor Selection](images/cron/2.png)
+![SSH Login and Crontab Editor Selection](../images/cron/2.png)
 
 
 
@@ -44,7 +44,7 @@ m  h  dom  mon  dow  command
 
 A `*` in any field means "every" - for example, `* * * * *` means every minute of every hour of every day.
 
-![Crontab File Structure in Nano](images/cron/1.png)
+![Crontab File Structure in Nano](../images/cron/1.png)
 
 
 
@@ -58,7 +58,7 @@ At the bottom of the crontab file, the following malicious entry is added. This 
 
 The `* * * * *` schedule ensures the command executes once every minute, continuously, without any further user interaction.
 
-![Persistence Entry Added to Crontab](images/cron/3.png)
+![Persistence Entry Added to Crontab](../images/cron/3.png)
 
 
 
@@ -77,7 +77,7 @@ Cron persistence simulation
 
 The file exists and contains the expected string, confirming the cron job ran successfully in the background without any user interaction.
 
-![Payload Execution Verified](images/cron/4.png)
+![Payload Execution Verified](../images/cron/4.png)
 
 
 
@@ -93,7 +93,7 @@ Switching to the detection side, Splunk is used to investigate audit logs collec
 
 All events are tied to `AUID="varshith"` and `UID="varshith"`, clearly identifying the user who created the cron entry.
 
-![Splunk Audit Events - Crontab Write Activity](images/cron/5.png)
+![Splunk Audit Events - Crontab Write Activity](../images/cron/5.png)
 
 
 
@@ -109,7 +109,7 @@ A second cluster of Splunk events captured around 4:38 PM shows the cron daemon 
 
 These events confirm the cron daemon authenticated and ran the planted job. The presence of these PAM session events for an unexpected or unauthorized cron entry is a strong indicator of persistence activity.
 
-![Splunk Audit Events - Cron Daemon Execution](images/cron/6.png)
+![Splunk Audit Events - Cron Daemon Execution](../images/cron/6.png)
 
 
 ## Key Takeaways
