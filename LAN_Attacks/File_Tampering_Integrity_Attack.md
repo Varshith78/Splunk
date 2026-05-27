@@ -16,7 +16,7 @@ The attack begins by gaining access to the target machine over SSH. Once logged 
 
 In this demonstration, the attacker maps `fakebank.com` to the IP `1.2.3.4`, effectively hijacking any local resolution of that domain.
 
-![SSH Attack - Injecting fakebank.com into /etc/hosts](images/file_tampering/1.png)
+![SSH Attack - Injecting fakebank.com into /etc/hosts](../images/file_tampering/1.png)
 
 At this stage, the entry has been successfully written to the file. The system is now compromised in terms of hostname resolution, but no specific alert has been triggered.
 
@@ -28,7 +28,7 @@ Without any additional monitoring configured, the default system logs do not gen
 
 The audit log entries visible at this point are generic SERVICE_STOP, SERVICE_START, and PROCTITLE records related to system processes, with no correlation to the file write that just occurred.
 
-![Default Splunk Logs - No hosts_integrity Key Visible](images/file_tampering/2.png)
+![Default Splunk Logs - No hosts_integrity Key Visible](../images/file_tampering/2.png)
 
 This is what makes the attack dangerous in default configurations: the modification goes unnoticed, and there is no straightforward way to search or alert on it without additional instrumentation.
 
@@ -48,7 +48,7 @@ sudo auditctl -w /etc/hosts -p wa -k hosts_integrity
 - `-p wa` : Trigger on write (w) and attribute change (a) operations
 - `-k hosts_integrity` : Tag matching events with this key for easy search and correlation
 
-![Auditd Watch Rule Setup for /etc/hosts](images/file_tampering/3.png)
+![Auditd Watch Rule Setup for /etc/hosts](../images/file_tampering/3.png)
 
 Once this rule is active, any modification to `/etc/hosts` will generate audit log entries tagged with `hosts_integrity`, making them immediately searchable in Splunk.
 
@@ -58,7 +58,7 @@ Once this rule is active, any modification to `/etc/hosts` will generate audit l
 
 With the auditd rule now in place, the attack is repeated. A second malicious entry is appended to `/etc/hosts`, this time mapping `go0gle.com` (a typosquat domain) to `13.56.106.12`. The `cat` output confirms both the original fake entry and the new one are now present in the file.
 
-![Second Injection - go0gle.com Added to /etc/hosts](images/file_tampering/4.png)
+![Second Injection - go0gle.com Added to /etc/hosts](../images/file_tampering/4.png)
 
 ---
 
@@ -68,7 +68,7 @@ After the second injection, Splunk now surfaces events tagged with the `hosts_in
 
 The presence of the `hosts_integrity` key in these logs confirms that the monitored file was accessed in a write operation, and the events can now be investigated, alerted on, or correlated with other activity.
 
-![Splunk Events Tagged with hosts_integrity Key](images/file_tampering/5.png)
+![Splunk Events Tagged with hosts_integrity Key](../images/file_tampering/5.png)
 
 ---
 
@@ -78,7 +78,7 @@ The most critical log entry is the SYSCALL event that captures the `tee` command
 
 This single log entry is sufficient to confirm that a write to the monitored file occurred, who triggered it, and under what context.
 
-![SYSCALL Event - tee Writing to /etc/hosts with hosts_integrity Key](images/file_tampering/6.png)
+![SYSCALL Event - tee Writing to /etc/hosts with hosts_integrity Key](../images/file_tampering/6.png)
 
 ---
 
@@ -88,7 +88,7 @@ To complete the investigation, the PATH record associated with the same audit ev
 
 Additional corroborating entries include the sudo auth log showing the exact command run and the EXECVE records confirming the argument chain (`tee -a /etc/hosts`).
 
-![PATH Record Confirming /etc/hosts as the Tampered File](images/file_tampering/7.png)
+![PATH Record Confirming /etc/hosts as the Tampered File](../images/file_tampering/7.png)
 
 ---
 
