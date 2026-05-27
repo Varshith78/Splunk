@@ -4,7 +4,7 @@
 
 FTP (File Transfer Protocol), as the name suggests, is used for transferring files. Unlike SSH, FTP only allows the user to upload or download files from the server to the device the connection is made from. Attackers use tools like Hydra, Medusa, Ncrack, or even Nmap scripts to perform brute force attacks to obtain passwords.
 
----
+
 
 ## Step 1: Brute Forcing the FTP Password with Hydra
 
@@ -27,7 +27,7 @@ From the output, it can be observed that the password has been successfully comp
 - **Username:** varshith  
 - **Password:** ubuntu
 
----
+
 
 ## Step 2: Observing the Logs - Failed Login Attempts
 
@@ -45,7 +45,7 @@ From a **defender's perspective**, this behavior indicates:
 
 Since the attacker now has the valid credentials, they can connect to the FTP server and upload or download files. If FTP is not configured properly, there is also a risk of the attacker navigating to other sensitive directories on the system.
 
----
+
 
 ## Step 3: Connecting to the FTP Server
 
@@ -55,7 +55,7 @@ Using the compromised credentials, the attacker connects to the FTP server and l
 
 The attacker successfully authenticates and gains access to the user's home directory, which contains folders such as Desktop, Documents, Downloads, Music, Pictures, and more.
 
----
+
 
 ## Step 4: Downloading Files from the Server
 
@@ -65,7 +65,7 @@ The attacker identifies a file of interest (`test.txt`) and downloads it using t
 
 The file is transferred successfully from the target machine to the attacker's system. This demonstrates how an attacker can exfiltrate sensitive data once FTP credentials are compromised.
 
----
+
 
 ## Step 5: Logs Confirming the Download
 
