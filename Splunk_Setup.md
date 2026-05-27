@@ -1,23 +1,5 @@
 # Splunk Universal Forwarder Setup
 
-<!--
-## 1. Prerequisites and Known Issues
-
-Before installing the Splunk Universal Forwarder on an Ubuntu virtual machine,
-note a common graphics driver warning that appears during boot on VMware-based hypervisors.
-
-**Observed Error:**
-
-
-
-![Ubuntu vmwgfx boot error](images/setup/0_ubuntu_error.png)
-
-This error relates to the VMware graphics driver (vmwgfx) running under an
-unsupported hypervisor configuration. It does not affect Splunk functionality and can be safely
-disregarded for this setup. The system will boot and operate normally. To suppress the error
-permanently, switch the VM display adapter to a supported type in your hypervisor settings.
-
--->
 
 ## 1. Installing the Universal Forwarder
 
