@@ -13,7 +13,7 @@ sudo apt update
 sudo apt install dsniff -y
 ```
 
-![dsniff installation](images/arp_spoofing/1.png)
+![dsniff installation](../images/arp_spoofing/1.png)
 
 
 
@@ -34,11 +34,11 @@ From the output:
 
 
 
-![ip a output](images/arp_spoofing/2.png)
+![ip a output](../images/arp_spoofing/2.png)
 
 
 
-![ip route output](images/arp_spoofing/3.png)
+![ip route output](../images/arp_spoofing/3.png)
 
 
 
@@ -53,7 +53,7 @@ cat /proc/sys/net/ipv4/ip_forward
 
 The output `1` confirms that IP forwarding is now active.
 
-![IP forwarding enabled](images/arp_spoofing/4.png)
+![IP forwarding enabled](../images/arp_spoofing/4.png)
 
 
 
@@ -69,7 +69,7 @@ sudo arpspoof -i eth0 -t 10.155.14.161 10.155.14.37
 
 
 
-![Spoofing victim](images/arp_spoofing/5.png)
+![Spoofing victim](../images/arp_spoofing/5.png)
 
 **Terminal 2 - Tell the gateway that the attacker is the victim:**
 
@@ -79,7 +79,7 @@ sudo arpspoof -i eth0 -t 10.155.14.37 10.155.14.161
 
 
 
-![Spoofing gateway](images/arp_spoofing/6.png)
+![Spoofing gateway](../images/arp_spoofing/6.png)
 
 At this point the attacker is positioned as a man-in-the-middle and can intercept all traffic between the victim and the gateway.
 
@@ -97,7 +97,7 @@ In the output below, both `10.155.14.121` (attacker) and `10.155.14.37` (gateway
 
 
 
-![ARP table anomaly](images/arp_spoofing/8.png)
+![ARP table anomaly](../images/arp_spoofing/8.png)
 
 
 
@@ -112,7 +112,7 @@ index=* arp
 
 
 
-![Splunk ARP audit logs](images/arp_spoofing/7.png)
+![Splunk ARP audit logs](../images/arp_spoofing/7.png)
 
 
 
@@ -128,7 +128,7 @@ sudo apt install arpwatch -y
 
 
 
-![Arpwatch installation](images/arp_spoofing/9.png)
+![Arpwatch installation](../images/arp_spoofing/9.png)
 
 
 
@@ -141,7 +141,7 @@ After starting, arpwatch logs activity to the system syslog. The syslog entries 
 sudo tail -f /var/log/syslog
 ```
 
-![Syslog arpwatch](images/arp_spoofing/10.png)
+![Syslog arpwatch](../images/arp_spoofing/10.png)
 
 From this, it can be observed that an error in arpwatch is preventing it from performing its intended function of generating and sending alerts to the monitoring system (Splunk). Upon analysis, it was identified that the database file used by arpwatch to store ARP-related information was missing. By following the steps below, the issue can be resolved, allowing arpwatch to properly generate and forward alerts to Splunk.
 
@@ -162,7 +162,7 @@ sudo arpwatch -i enp0s3 -d
 
 When run for the first time, arpwatch sends a "new station" notification for each discovered host. The output below shows the gateway `10.155.14.37` being registered.
 
-![Arpwatch first run](images/arp_spoofing/11.png)
+![Arpwatch first run](../images/arp_spoofing/11.png)
 
 
 
@@ -175,7 +175,7 @@ To forward arpwatch output to syslog (and subsequently to Splunk), redirect its 
 sudo arpwatch -i enp0s3 -d 2>&1 | logger
 ```
 
-![Arpwatch logger](images/arp_spoofing/12.png)
+![Arpwatch logger](../images/arp_spoofing/12.png)
 
 This ensures all arpwatch alerts (new station, flip flop, changed ethernet address) are written to syslog and picked up by Splunk.
 
@@ -189,7 +189,7 @@ After the logger pipe is set up, Splunk begins receiving arpwatch events from `/
 source="/var/log/syslog" arpwatch
 ```
 
-![Splunk arpwatch syslog](images/arp_spoofing/13.png)
+![Splunk arpwatch syslog](../images/arp_spoofing/13.png)
 
 This confirms successful forwarding of ARP logs using arpwatch via `/var/log/syslog`.
 
@@ -206,6 +206,6 @@ source="/var/log/syslog" "flip flop"
 
 
 
-![Splunk flip flop alerts](images/arp_spoofing/14.png)
+![Splunk flip flop alerts](../images/arp_spoofing/14.png)
 
 The high frequency of flip flop events (multiple per second) is a reliable indicator of an ongoing ARP poisoning attack.
