@@ -6,7 +6,7 @@ A reverse shell is a technique used to gain remote access to a target system. Un
 
 This approach exploits a common firewall misconfiguration: most firewalls are configured to block inbound connections but do not scrutinize outbound traffic. For example, a reverse shell connection established over port 80 may appear to the firewall as normal web browsing, allowing it to pass undetected. Since the victim initiates the connection, it is classified as outbound traffic and typically goes unchecked.
 
----
+
 
 ## Tool Used: Netcat
 
@@ -18,7 +18,7 @@ Netcat (`nc`) is a versatile networking utility commonly used in reverse shell a
 - Opening reverse shell backdoors
 - Hosting a lightweight HTTP server
 
----
+
 
 ## Setting Up the Listener (Attacker Side)
 
@@ -34,9 +34,9 @@ nc -lvnp <port>
 nc -lvnp 4567
 ```
 
-![Attacker listening on port 4567](images/netcat/1.png)
+![Attacker listening on port 4567](../images/netcat/1.png)
 
----
+
 
 ## Initiating the Reverse Shell (Victim Side)
 
@@ -58,15 +58,15 @@ This payload works by:
 2. Creating a named pipe (FIFO) at `/tmp/f`
 3. Piping shell input/output through the named pipe and Netcat to the attacker's IP and port
 
-![Victim executing the reverse shell payload](images/netcat/2.png)
+![Victim executing the reverse shell payload](../images/netcat/2.png)
 
-![Shell session initiated on victim side](images/netcat/3.png)
+![Shell session initiated on victim side](../images/netcat/3.png)
 
-![Reverse shell connection established on attacker side](images/netcat/4.png)
+![Reverse shell connection established on attacker side](../images/netcat/4.png)
 
 As seen in the screenshots above, once the connection is established, the victim is unable to interrupt or stop the shell session. The attacker now has interactive access to the victim's shell.
 
----
+
 
 ## Log Analysis with Auditd
 
@@ -82,7 +82,7 @@ To better monitor and analyze system activity during and after an attack, `audit
 
 Custom rules are added to `/etc/audit/rules.d/audit.rules` to monitor execution of shells, Netcat, and other relevant binaries.
 
-![Audit rules configuration file](images/netcat/5.png)
+![Audit rules configuration file](../images/netcat/5.png)
 
 The rules above monitor:
 
@@ -98,9 +98,9 @@ To verify that the rules have been loaded correctly, run:
 sudo auditctl -l
 ```
 
-![Verifying loaded audit rules](images/netcat/6.png)
+![Verifying loaded audit rules](../images/netcat/6.png)
 
----
+
 
 ## Observing the Attack in Audit Logs
 
@@ -115,7 +115,7 @@ Once the reverse shell connection is established and commands are executed, the 
 
 These logs can be ingested into a SIEM such as Splunk for easier searching and visualization.
 
-![Audit logs in Splunk showing reverse shell activity](images/netcat/7.png)
+![Audit logs in Splunk showing reverse shell activity](../images/netcat/7.png)
 
 In the screenshot above, the logs clearly show:
 
@@ -123,7 +123,7 @@ In the screenshot above, the logs clearly show:
 - Subsequent commands such as `ls` and `whoami` executed through the shell session are also captured
 - All events are tied to the user `dummy` (UID 1000) on the Ubuntu host
 
----
+
 
 ## Privilege Escalation via Sudo
 
@@ -135,7 +135,7 @@ This means the attacker can then run commands with `sudo` without needing to kno
 
 The attacker attempted to read `/etc/shadow` — a file containing hashed passwords that is accessible only by root:
 
-![Reading /etc/shadow after privilege escalation](images/netcat/8.png)
+![Reading /etc/shadow after privilege escalation](../images/netcat/8.png)
 
 The `/etc/shadow` file was successfully read after the victim inadvertently granted sudo privileges through their own terminal activity. This gives the attacker access to password hashes for all users on the system.
 
@@ -147,7 +147,7 @@ The audit logs in Splunk confirm the sequence of events. The logs capture:
 - A subsequent `sudo cat /etc/shadow` command executed successfully
 - Associated `execve` syscalls for `sudo`, `cat`, and privilege check utilities (`unix_chkpwd`)
 
-![Audit logs showing sudo and /etc/shadow access](images/netcat/9.png)
+![Audit logs showing sudo and /etc/shadow access](../images/netcat/9.png)
 
 The `execve` events at timestamps around `1:54 PM` clearly show:
 
@@ -155,7 +155,7 @@ The `execve` events at timestamps around `1:54 PM` clearly show:
 - `unix_chkpwd` being invoked for credential validation
 - All actions tied to the `varshith` user account on the Ubuntu host
 
----
+
 
 ## Summary
 
