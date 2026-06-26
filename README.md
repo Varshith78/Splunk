@@ -16,7 +16,7 @@ The lab uses a combination of Kali Linux as the attacker machine and Ubuntu as t
 
 Before running any of the attack modules, set up Splunk and configure log forwarding from the target machine.
 
-[Splunk Setup - Server and Universal Forwarder](Splunk_Setup_%5BServer_and_Universal_Forwarder%5D.md)
+[Splunk Setup - Server and Universal Forwarder](Splunk_Setup.md)
 
 This covers installing Splunk Enterprise on the monitoring machine, installing the Universal Forwarder on the target, and configuring inputs to forward system and audit logs.
 
